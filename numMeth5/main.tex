@@ -1,0 +1,192 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{amssymb}
+\usepackage{ragged2e}
+\justifying
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage[width=17cm,top=1cm,height=27cm]{geometry}
+\usepackage{graphicx}
+\title{Численные методы(Мусаева)}
+
+\date{November 2019}
+
+\begin{document}
+\begin{titlepage}
+\begin{center}
+2019 год
+\vspace {8cm}
+
+
+
+{ \LARGEПрактикум по численным методам:\\ минимизация квадратичной функции }\\
+\vspace {8cm}
+\bigskip Мусаева Аида, группа 301
+\end{center}
+\vfill
+
+
+\vfill
+
+\end{titlepage}
+\section{Постановка задачи}
+\text{
+Пусть $X$ – евклидово n-мерное пространство, обозначаемое далее $\mathbb{R}^n$. В пространстве $\mathbb{R}^n$ рассмотрим квадратичную функцию:\\
+$f(x) = \frac{1}{2}x^TAx+x^Tb$,\\
+где $A$ – положительно определенная матрица, т.е. $A = A^T$ и имеют место неравенства:\\
+$m\|x\|^2 \leq (x,Ax) \leq M\|x\|^2, m\geq0$\\\\
+Для такой функции существует единственная точка минимума $\overline{x}$, удовлетворяющая СЛАУ $Ax+b = 0$.\\
+Задание:
+\begin{displaymath}
+\mathbf{A} =
+\left( \begin{array}{ccc}
+4 & 1 & 1 \\
+1 & 8,2 & -1 \\
+1 & -1 & 10.2
+\end{array} \right)
+\end{displaymath}
+
+\begin{displaymath}
+\mathbf{b} =
+\left( \begin{array}{ccc}
+1 \\
+-2 \\
+3
+\end{array} \right)
+\end{displaymath}
+}\\
+
+\section{Методы наискорейшего спуска}
+\text{Поставим следующую задачу: имея точку $x_k \in \mathbb{R}^n$ построить точку $x_{k+1} \in \mathbb{R}^n$ такую, чтобы выполнялось соотношение:\\
+$f(x_{k+1}) < f(x_k)$
+Будем искать точку $x_{k+1}$ в следующем виде:\\
+\begin{equation}
+x_{k+1} = x_k + \mu_k q,\;
+ \label{eq:ref}
+\end{equation}
+\begin{equation}
+\mu_k = -\frac{q^T(Ax_k+b)}{q^T*Aq},\\
+ \label{eq1:ref}
+\end{equation}
+где $q$ - заданный вектор из $\mathbb{R}^n$, называемый направлением спуска, а $\mu_k$ – искомый параметр, называемый шагом метода в направлении спуска. Продолжая указанные построения, получим последовательность $x_k$, которую естественно назвать последовательностью убывания для функции $f$.
+}
+\subsection{Метод наискорейшего градиентного спуска}
+\text{ Если в формуле (\ref{eq:ref}) считать, что $q = grad\,f(x_k) = Ax_k+b$, то соответствующий метод построения последовательности {$x_k$} называют \textit{ градиентным методом}. Если к тому же шаг метода $\mu_k$ выбирается по формуле (\ref{eq1:ref}), то такой метод называют (одношаговым) \textit{методом наискорейшего градиентного спуска} (МНГС). В этом случае формула (\ref{eq1:ref}) принимает вид:\\
+$\mu_k = - \frac{\|Ax_k+b\|^2}{(Ax_k+b)^TA(Ax_k+b)}$.
+Метод наискорейшего градиентного спуска сходится для любого начального вектора $x_0$
+}
+\subsubsection{Код программы}
+\begin{verbatim}
+import numpy as np
+import math
+from pylab import *
+from sympy import *
+x, y, z  = symbols('x y z')
+f = 2*x**2 + 4.1*y**2 + 5.1*z**2 + x*y - y*z + x*z + x - 2*y + 3*z + 11
+def grad(f,dot):
+    x, y, z = symbols('x y z')
+    a = np.array([x, y, z])
+    grad0 = np.array([f.diff(i) for i in a])
+    return np.array([grad0[i].subs([(x,dot[0]), (y,dot[1]), (z,dot[2])]) 
+           for i in range(3)])
+def norm(a):
+    return math.sqrt(a[0] ** 2 + a[1] ** 2 + a[2] ** 2)
+def steepestGradDesc(f, x_prev=np.array([0,0,0]), eps = 0.000001):
+    A = np.array([[4, 1, 1], [1, 8.2, -1], [1, -1, 10.2]])
+    x, y, z  = symbols('x y z')
+    a = np.array([x, y, z])
+    phi_prev = - ((grad(f,x_prev).transpose()).dot(grad (f,x_prev)))
+            /((grad(f,x_prev).transpose()).dot(A.dot((grad(f,x_prev)))))
+    x_next = x_prev + phi_prev * grad(f,x_prev)
+    i = 1;
+    while (norm(x_next-x_prev)>eps):
+        x_prev = x_next
+        phi_prev = - ((grad(f, x_prev).transpose()).dot(grad(f, x_prev))) 
+                / ((grad(f, x_prev).transpose()).dot(A.dot((grad(f, x_prev)))))
+        x_next = x_prev + phi_prev * grad(f, x_next)
+        print(x_next)
+        i+=1
+    return(x_next,i)
+xOpt, iter  = steepestGradDesc(f)
+print(xOpt, iter)
+\end{verbatim}
+\subsubsection{Результат работы программы}
+\text{
+\begin{displaymath}
+\mathbf{X} =
+\left( \begin{array}{c}
+-0.249677203320831 \\
+0.244389825968740 \\
+-0.245679518667231 \\
+\end{array} \right)
+\end{displaymath}
+16 итераций
+}
+\subsection{Метод наискорейшего покоординатного спуска}
+\text{В случае выбора направлений спуска $q$ в формуле (\ref{eq:ref}) на каждом шаге в виде $q = e^i = (\underbrace{ 0,\cdots%
+    ,0,1 }_{i},0,\cdots% 
+    ,0)^T$, где $e^i - i$-ый орт пространства  $\mathbb{R}^n$, метод носит название \textit{метода покоординатного спуска}. При выборе шага метода $\mu_k$ по формуле (\ref{eq1:ref}) его называют  \textit{методом наискорейшего покоординатного спуска}(МНПС). В этом случае формула (\ref{eq1:ref}) принимает вид:\\
+    $\mu_k = - \frac{e^i(Ax_k+b)}{e^i*Ae^i}$\\\\
+    Метод наискорейшего покоординатного спуска сходится для любого начального вектора $x_0$.
+}
+\subsubsection{Код программы}
+\begin{verbatim}
+import numpy as np
+import math
+import pylab
+from mpl_toolkits.mplot3d import axes3d, Axes3D
+from sympy import *
+x, y, z  = symbols('x y z')
+f = 2*x**2 + 4.1*y**2 + 5.1*z**2 + x*y - y*z + x*z + x - 2*y + 3*z + 11
+
+
+def grad(f,dot):
+    x, y, z = symbols('x y z')
+    a = np.array([x, y, z])
+    grad0 = np.array([f.diff(i) for i in a])
+    return np.array([grad0[i].subs([(x,dot[0]), (y,dot[1]), (z,dot[2])])
+            for i in range(3)])
+
+
+def norm(a):
+    return math.sqrt(a[0] ** 2 + a[1] ** 2 + a[2] ** 2)
+
+
+def steepestCoordinateDesc(f, x_prev=np.array([0,0,0]), eps = 0.000001):
+    A = np.array([[4, 1, 1], [1, 8.2, -1], [1, -1, 10.2]])
+    x, y, z  = symbols('x y z')
+    a = np.array([x, y, z])
+    def e(i):
+        return np.array([int(j == i) for j in range(3)]).transpose()
+    phi_prev = - (e(0).dot(grad(f,x_prev)))/
+            (e(0).transpose().dot(A.dot(e(0).transpose())))
+    x_next = x_prev + phi_prev * e(0).transpose()
+    iter = 1
+    i = 0
+    while (norm(x_next-x_prev)>eps):
+        x_prev = x_next
+        i+=1
+        i%=3
+        phi_prev = - (e(i).dot(grad(f,x_prev)))/
+                (e(i).transpose().dot(A.dot(e(i).transpose())))
+        x_next = x_prev + phi_prev * e(i).transpose()
+        print(x_next)
+        iter+=1
+    return(x_next, iter)
+
+xOpt, it = steepestCoordinateDesc(f)
+print(xOpt, it)
+
+\end{verbatim}
+\subsubsection{Результат работы программы}
+\text{
+\begin{displaymath}
+\mathbf{X} =
+\left( \begin{array}{c}
+-0.249678219015254 \\
+0.244390165391223 \\
+-0.245679570156228 \\
+\end{array} \right)
+\end{displaymath}
+18 итераций
+}
+\end{document}
