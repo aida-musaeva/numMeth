@@ -1,7 +1,5 @@
 import numpy as np
 import math
-import pylab
-from mpl_toolkits.mplot3d import axes3d, Axes3D
 from sympy import *
 x, y, z  = symbols('x y z')
 f = 2 * x ** 2 + 4.1 * y ** 2 + 5.1 * z ** 2 + x * y - y * z + x * z + x - 2 * y + 3 * z + 11
